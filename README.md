@@ -19,11 +19,7 @@ sur un historique GLPI de plusieurs dizaines de milliers de tickets.
 
 ## Architecture
 
-```
-MariaDB (GLPI) --Sling--> Snowflake --ingest_glpi.py--> Qdrant (hybride) --app/rag.py--> Ollama (LLM local)
-                                                                              |
-                                                                         Langfuse (tracing + feedback utilisateur)
-```
+![Architecture du pipeline](docs/images/architecture.png)
 
 - **Source** : base MariaDB de GLPI, répliquée dans Snowflake via Sling.
 - **Ingestion** (`ingest_glpi.py`) : nettoyage (HTML, mojibake, anonymisation RGPD),
@@ -35,6 +31,8 @@ MariaDB (GLPI) --Sling--> Snowflake --ingest_glpi.py--> Qdrant (hybride) --app/r
 - **API** (`app/main.py`) : endpoint FastAPI consommé par un plugin GLPI natif
   (`glpi-plugin/`) qui affiche l'assistant directement sur le formulaire de création
   de ticket.
+
+  ![Widget assistant sur le formulaire de ticket GLPI](docs/images/plugin-glpi.png)
 - **Observabilité** (`app/tracing.py`) : traces Langfuse (auto-hébergé) sur chaque
   requête, avec notation de la réponse par l'utilisateur final — la boucle de feedback
   sert à identifier concrètement où le LLM se trompe, plutôt que de se fier à des

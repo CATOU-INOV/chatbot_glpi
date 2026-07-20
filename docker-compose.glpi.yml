@@ -1,0 +1,46 @@
+# GLPI 10.0.25 en local, pour tester le plugin RAG en conditions réelles.
+# Séparé des autres compose (Langfuse, Qdrant) pour rester indépendant et
+# pouvoir être démarré/arrêté sans toucher au reste de la stack.
+#
+# Démarrage : docker compose -f docker-compose.glpi.yml up -d
+# Accès :     http://localhost:8081
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: glpi_root_pw
+      MARIADB_DATABASE: glpidb
+      MARIADB_USER: glpi_user
+      MARIADB_PASSWORD: glpi_pw
+    volumes:
+      - glpi_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  glpi:
+    image: diouxx/glpi
+    restart: always
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      VERSION_GLPI: "10.0.25"
+      TIMEZONE: Europe/Paris
+    ports:
+      - "8081:80"
+    volumes:
+      - glpi_data:/var/www/html/glpi
+      # Plugin RAG monté en bind mount : les modifications faites sur le
+      # disque hôte (./glpi-plugin/glpirag) sont visibles immédiatement dans
+      # le conteneur, pas besoin de reconstruire l'image à chaque changement.
+      - ./glpi-plugin/glpirag:/var/www/html/glpi/plugins/glpirag
+
+volumes:
+  glpi_mariadb_data:
+    driver: local
+  glpi_data:
+    driver: local

@@ -1,0 +1,17 @@
+.env
+.env.langfuse
+keys/
+*.p8
+*.pem
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.log
+
+# Supports de présentation/réunion internes (pas de doc projet/infra)
+presentation_technique.md
+presentation_mercredi.md
+soutenance_technique.md
+GLPI-RAG-soutenance.html
+reunion_11h_points_cles.md
